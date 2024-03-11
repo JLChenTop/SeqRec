@@ -1,0 +1,94 @@
+
+
+###################### Environment Settings
+
+gpu_id: '0'
+seed: 2023  # default seed 2020
+save_dataset : True     #   是否保存过滤后的数据集。如果为True，则保存过滤后的数据集，否则不会保存。默认为 False
+shuffle : True      #   是否在每个 epoch 之前对训练数据进行打乱。默认为 True 
+state: DEBUG    #   日志记录级别。默认为 'INFO' 。范围在 ['INFO', 'DEBUG', 'WARNING', 'ERROR', 'CRITICAL'] 中
+
+###################### Data settings : General Recommendation
+USER_ID_FIELD: user_id
+ITEM_ID_FIELD: item_id
+TIME_FIELD : timestamp
+ 
+load_col:   # Selectively Loading 选择性加载
+    inter: [user_id, item_id, timestamp]       # Defaults to :   inter: [user_id, item_id] 
+
+
+user_inter_num_interval: "[5,inf)"      # 按交互次数过滤，过流交互次数在此区间内的用户
+item_inter_num_interval: "[0,inf)"      # 按交互次数过滤，过流交互次数在此区间内的item
+
+# preprocessing 预处理
+# alias_of_user_id : None          # 字段名称列表，将被重新映射到与 USER_ID_FIELD 相同的索引系统中。默认为 None
+# alias_of_item_id : None
+
+
+
+###################### Training Settings  训练设置 
+
+
+# Training and evaluation config
+embedding_size: 64
+learning_rate: 0.001
+learner : 'adam'        # range in ['adam', 'sgd', 'adagrad', 'rmsprop', 'sparse_adam']
+weight_decay : 0.0             #   权重衰减（L2 惩罚），用于优化器。默认为 0.0
+
+epochs: 100
+train_batch_size: 4096
+eval_batch_size: 4096
+
+
+#如果设置为 'CE' ，则训练任务被视为多分类任务，目标项为 ground Truth。这样就不需要负采样了。如果设置为 'BPR' ，训练任务将以pair-wise的方式进行优化，最大化正项和负项之间的差异。这样就需要负采样
+# loss_type: 'CE'                 # (str) The type of loss function. Range in ['BPR', 'CE'].
+# train_neg_sample_args   :   None
+# # 训练中负采样    
+loss_type   :   'BPR'
+train_neg_sample_args:
+    distribution: uniform
+    sample_num: 5
+    alpha: 1.0
+    dynamic: False
+    candidate_num: 0
+
+
+loss_decimal_place  : 4
+
+stopping_step: 10            # 早停轮数
+
+###################### Evaluation Settings  评估设置
+# 4 个键： group_by 、 order 、 split 和 mode ，分别控制模型评估的数据分组策略、数据排序策略、数据拆分策略和评估模式
+eval_args:
+    group_by: user      # 如果 group_by 的值为 user ，则数据将按照 USER_ID_FIELD 列进行分组，并按照用户维度进行拆分。如果值为 none ，则不会对数据进行分组。默认值为 user
+    order: TO           # ['RO', 'TO'] ，表示随机排序和时间排序 
+    # split:  ['RS','LS'] ，表示基于比率的数据拆分和留一法数据拆分;
+    #   如果 split 的键是 RS ，则需要设置分割比例，如 [0.8,0.1,0.1] 、 [7,2,1] 或 [8,0,2] ，分别表示训练集、验证集和测试集的比例。
+    #   如果 split 的键是 LS ，现在我们支持三种 LS 模式： ['valid_and_test', 'valid_only', 'test_only'] ，您应该选择一种模式作为 LS 的值。 
+    #   split 的默认值为 {'RS': [0.8,0.1,0.1]} 
+    split: {'RS': [0.8,0.1,0.1]}   # 
+    # split: {'RS': [0.95,0.05,0]}
+    # mode (str|dict) ：决定在 valid 和 test 阶段评估模型时的数据范围
+    mode: uni100
+metrics:  [ 'NDCG', 'Hit' ]              # ['Recall', 'MRR', 'NDCG', 'Hit', 'Precision']
+topk: [1, 5, 10]
+valid_metric: Hit@10     #   提前停止的评估指标。它必须是使用过的 metrics 之一。默认为 'MRR@10'
+metric_decimal_place: 4     #   指标分数的小数位。默认为 4
+
+
+# dataset: taobao
+# data_path: /data/home/chenjiale/project/recsys2023_v2/data
+
+
+# dataset_save_path: /data/home/zhenglinan/recsys2023/data
+
+ 
+
+
+
+
+
+
+
+
+
